@@ -22,6 +22,11 @@
 
 </div>
 
+> **Running on NVIDIA Blackwell (B200)?** Use [`together_prime/`](./together_prime) — a
+> minimal, B200-validated harness (pinned upstream veRL `recipe/prime` + one recipe patch +
+> launch config). The legacy `training/` tree vendors an old verl that has no `sm_100`
+> kernels and will not run on Blackwell.
+
 
 # 🎉News
 

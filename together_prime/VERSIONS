@@ -1,0 +1,19 @@
+# Pinned versions for the B200-capable Together Prime harness.
+# These are the exact revisions the smoke test was validated against.
+
+# Container image (cu12.9 line; NOT the cu13.0 vllm020/vllm023 images — those fault in
+# the model cuBLAS GEMM on Blackwell).
+IMAGE=verlai/verl:vllm018.dev1
+
+# Upstream verl core (volcengine/verl == verl-project/verl).
+VERL_REPO=https://github.com/volcengine/verl.git
+VERL_COMMIT=bcb638649a50e58494a8ddd92085ad1174f674b8
+
+# recipe/prime submodule (verl-project/verl-recipe). The recipe-prime-port.patch is
+# diffed against this commit; setup.sh checks it out explicitly.
+RECIPE_REPO=https://github.com/verl-project/verl-recipe.git
+RECIPE_COMMIT=e7f889574b8301cc0f0fc1d57c6d67f31ffeb689
+
+# Base model (policy + implicit-PRM init) and eval dataset.
+MODEL=PRIME-RL/Eurus-2-7B-SFT
+DATA=openai/gsm8k

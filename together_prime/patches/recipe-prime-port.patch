@@ -1,0 +1,83 @@
+diff --git a/prime/main_prime.py b/prime/main_prime.py
+index 39d20de..ad23395 100644
+--- a/prime/main_prime.py
++++ b/prime/main_prime.py
+@@ -117,7 +117,7 @@ def main_task(config, compute_score=None):
+     # TODO: Additional config checks can be added with proper function under prime recipe
+     validate_config(
+         config=config,
+-        use_reference_policy=need_reference_policy(role_worker_mapping),
++        use_reference_policy=need_reference_policy(config),
+         use_critic=False,
+     )
+ 
+diff --git a/prime/prime_ray_trainer.py b/prime/prime_ray_trainer.py
+index df53b0e..0372698 100644
+--- a/prime/prime_ray_trainer.py
++++ b/prime/prime_ray_trainer.py
+@@ -171,10 +171,12 @@ class RayPRIMETrainer(RayPPOTrainer):
+             role_worker_mapping,
+             resource_pool_manager,
+             ray_worker_group_cls,
+-            reward_fn=reward_fn,
+-            val_reward_fn=val_reward_fn,
+             device_name=device_name,
+         )
++        # verl core dropped reward_fn/val_reward_fn from RayPPOTrainer.__init__;
++        # PRIME's own fit()/verify path still uses these attributes, so set them here.
++        self.reward_fn = reward_fn
++        self.val_reward_fn = val_reward_fn
+ 
+         self.use_critic = False
+ 
+@@ -414,9 +416,18 @@ class RayPRIMETrainer(RayPPOTrainer):
+                 timing_raw = {}
+ 
+                 batch: DataProto = DataProto.from_single_dict(batch_dict)
++                batch.meta_info["temperature"] = self.config.actor_rollout_ref.rollout.temperature
+ 
+-                # pop those keys for generation
+-                gen_batch = batch.pop(batch_keys=["input_ids", "attention_mask", "position_ids"])
++                # add uid before splitting off the gen batch, so the reward keys
++                # (uid/data_source/reward_model/extra_info) are retained on `batch`.
++                batch.non_tensor_batch["uid"] = np.array(
++                    [str(uuid.uuid4()) for _ in range(len(batch.batch))], dtype=object
++                )
++
++                # current verl tokenizes server-side from raw messages; select the gen
++                # batch via the core helper instead of popping pre-tokenized tensors.
++                gen_batch = self._get_gen_batch(batch)
++                gen_batch.meta_info["global_steps"] = self.global_steps
+                 gen_batch_output = gen_batch.repeat(
+                     repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True
+                 )
+@@ -424,7 +435,7 @@ class RayPRIMETrainer(RayPPOTrainer):
+                 with simple_timer("step", timing_raw):
+                     # generate a batch
+                     with simple_timer("gen", timing_raw):
+-                        gen_batch_output = self.actor_rollout_wg.generate_sequences(gen_batch_output)
++                        gen_batch_output = self.async_rollout_manager.generate_sequences(gen_batch_output)
+                         timing_raw.update(gen_batch_output.meta_info["timing"])
+                         gen_batch_output.meta_info.pop("timing", None)
+ 
+@@ -432,7 +443,7 @@ class RayPRIMETrainer(RayPPOTrainer):
+                         with simple_timer("gen_max", timing_raw):
+                             gen_baseline_batch = deepcopy(gen_batch)
+                             gen_baseline_batch.meta_info["do_sample"] = False
+-                            gen_baseline_output = self.actor_rollout_wg.generate_sequences(gen_baseline_batch)
++                            gen_baseline_output = self.async_rollout_manager.generate_sequences(gen_baseline_batch)
+ 
+                             batch = batch.union(gen_baseline_output)
+                             rm_scores, _ = self.compute_reward(batch, 1)
+@@ -453,10 +464,7 @@ class RayPRIMETrainer(RayPPOTrainer):
+ 
+                             del gen_baseline_batch, gen_baseline_output
+ 
+-                    batch.non_tensor_batch["uid"] = np.array(
+-                        [str(uuid.uuid4()) for _ in range(len(batch.batch))], dtype=object
+-                    )
+-                    # repeat to align with repeated responses in rollout
++                    # repeat to align with repeated responses in rollout (uid added above)
+                     batch = batch.repeat(repeat_times=self.config.actor_rollout_ref.rollout.n, interleave=True)
+                     batch = batch.union(gen_batch_output)
+ 

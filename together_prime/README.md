@@ -44,8 +44,11 @@ bash together_prime/setup.sh                 # creates together_prime/verl
 # 1. prep data + model cache (needs network; downloads ~15GB once)
 bash together_prime/run/in_container.sh prep.sh
 
-# 2. smoke test (8xB200, 3 steps)
+# 2. smoke test (8xB200, 3 steps) — proves the pipeline runs
 bash together_prime/run/in_container.sh smoke_run.sh
+
+# 3. throughput capture (8xB200, 6 steps, realistic batch) — records tokens/sec
+bash together_prime/run/in_container.sh throughput_run.sh
 ```
 
 Expect exit 0, `SMOKE_DONE`, three `step:N` lines with `actor/pg_loss`, `actor/grad_norm`,
@@ -57,8 +60,31 @@ the full pipeline runs.)
 Diagnostics: `run/gpu_check.sh` (bare GEMM sanity), `run/vllm_smoke.sh` (standalone vLLM,
 no verl) — both via `in_container.sh`.
 
+## Throughput baseline (8xB200, captured 2026-07)
+
+`run/throughput_run.sh` runs PRIME at a realistic shape (64 prompts × `rollout.n=4` =
+256 sequences, `max_response_length=3072`, 6 steps) and reaches steady state by step 3.
+
+| Metric | Value |
+| --- | --- |
+| Step time (steady state) | ~53.9 s |
+| ↳ generation (vLLM rollout) | ~36.4 s (68%) |
+| ↳ actor update (FSDP) | ~11.6 s (22%) |
+| ↳ ref / old_log_prob / verify | ~5.8 s (11%) |
+| Generation throughput | ~21k tok/s total (~2.6k/GPU) |
+| End-to-end response throughput | ~14.3k tok/s (~1.8k/GPU) |
+| Sequences/sec | ~4.8 |
+| Actor MFU | ~19% |
+| Memory | ~33 GB alloc / ~58 GB reserved of 183 GB |
+
+The profile is healthy and rollout-dominated, as expected for this shape. It is **not
+optimized**: `enforce_eager=True` (our Blackwell-safety flag) disables the vLLM CUDA graph
+and leaves decode throughput on the table, and there is large memory headroom for a bigger
+batch.
+
 ## Next
 
-The smoke test proves plumbing. Next is a **throughput capture**: raise
-`total_training_steps` and batch size, drop the smoke caps, record tokens/sec, and compare
-to a reference bar.
+- **Optimization levers:** test `enforce_eager=False` (risks the vLLM cumem/Blackwell
+  crash → needs its own validation) and a 2–3× larger batch to use the memory headroom.
+- **Reference bar:** no hard reference throughput is available yet; the numbers above are a
+  functional baseline, not a target-relative result.

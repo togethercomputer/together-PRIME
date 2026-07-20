@@ -60,22 +60,24 @@ the full pipeline runs.)
 Diagnostics: `run/gpu_check.sh` (bare GEMM sanity), `run/vllm_smoke.sh` (standalone vLLM,
 no verl) — both via `in_container.sh`.
 
-## Throughput baseline (8xB200, captured 2026-07)
+## Throughput baseline (8xB200, captured 2026-07-20)
 
 `run/throughput_run.sh` runs PRIME at a realistic shape (64 prompts × `rollout.n=4` =
 256 sequences, `max_response_length=3072`, 6 steps) and reaches steady state by step 3.
+Re-run 2026-07-20 reproduced the original 2026-07 capture within noise (step time
+53.9 → 53.1 s, all shares unchanged), confirming the baseline is stable.
 
 | Metric | Value |
 | --- | --- |
-| Step time (steady state) | ~53.9 s |
-| ↳ generation (vLLM rollout) | ~36.4 s (68%) |
-| ↳ actor update (FSDP) | ~11.6 s (22%) |
-| ↳ ref / old_log_prob / verify | ~5.8 s (11%) |
-| Generation throughput | ~21k tok/s total (~2.6k/GPU) |
-| End-to-end response throughput | ~14.3k tok/s (~1.8k/GPU) |
+| Step time (steady state) | ~53.1 s |
+| ↳ generation (vLLM rollout) | ~35.4 s (67%) |
+| ↳ actor update (FSDP) | ~11.9 s (22%) |
+| ↳ ref / old_log_prob / verify | ~5.7 s (11%) |
+| Generation throughput | ~21.6k tok/s total (~2.7k/GPU) |
+| End-to-end response throughput | ~14.4k tok/s (~1.8k/GPU) |
 | Sequences/sec | ~4.8 |
 | Actor MFU | ~19% |
-| Memory | ~33 GB alloc / ~58 GB reserved of 183 GB |
+| Memory | ~33 GB alloc / ~55 GB reserved of 183 GB |
 
 The profile is healthy and rollout-dominated, as expected for this shape. It is **not
 optimized**: `enforce_eager=True` (our Blackwell-safety flag) disables the vLLM CUDA graph

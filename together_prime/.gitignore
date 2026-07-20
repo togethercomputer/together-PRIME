@@ -1,0 +1,4 @@
+# Created by setup.sh (a fresh upstream verl checkout) — never commit it.
+/verl/
+# Data + model cache + checkpoints produced by prep.sh / smoke_run.sh.
+/data/

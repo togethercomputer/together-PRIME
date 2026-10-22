@@ -11,7 +11,7 @@ For AIME 2024, AMC, MATH-500, HumanEval, MBPP, and LeetCode, we use the followin
 ```bash
 git clone https://github.com/PRIME-RL/PRIME.git
 cd eval
-conda create -n prime python==3.10
+conda create -n prime python==3.11
 conda activate prime
 pip install -r requirements_prime.txt
 ```
@@ -21,7 +21,7 @@ For Minerva Math and OlympiadBench, we use the following virtual environment.
 ```bash
 # git clone https://github.com/PRIME-RL/PRIME.git
 # cd eval
-conda create -n qwen_math python==3.10
+conda create -n qwen_math python==3.11
 conda activate qwen_math
 pip install -r requirements_qwen_math.txt
 ```
@@ -31,7 +31,7 @@ For LiveCodeBench, we use the following virtual environment.
 ```bash
 # git clone https://github.com/PRIME-RL/PRIME.git
 # cd eval
-conda create -n lcb python==3.10
+conda create -n lcb python==3.11
 conda activate lcb
 pip install -r requirements_lcb.txt
 ```

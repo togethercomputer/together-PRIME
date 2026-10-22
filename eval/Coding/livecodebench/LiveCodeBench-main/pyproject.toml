@@ -11,14 +11,13 @@ url = 'https://pypi.org/simple'
 priority = 'primary'
 
 [tool.poetry.dependencies]
-python = ">=3.10 <4"
+python = ">=3.11 <4"
 pebble = "^5.0.7"
 datasets = "^2.18.0"
 google-generativeai = "^0.5.0"
 anthropic = "^0.25.1"
 openai = "^1.17.1"
 mistralai = "^0.1.8"
-pyext = "0.7"
 annotated-types = "^0.7.0"
 cohere = "^5.5.4"
 

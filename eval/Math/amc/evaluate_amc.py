@@ -52,7 +52,6 @@ def generate_sample_batch(question_list):
     )
     sampling_params = SamplingParams(max_tokens=4096,
                                      temperature=0,
-                                     best_of=1,
                                      stop=[], )
     outputs = llm.generate(question_list, sampling_params, use_tqdm=True)
     completions = [output.outputs[0].text for output in outputs]

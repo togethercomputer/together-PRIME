@@ -2753,21 +2753,6 @@ url = "https://pypi.org/simple"
 reference = "pypi_"
 
 [[package]]
-name = "pyext"
-version = "0.7"
-description = "Simple Python extensions."
-optional = false
-python-versions = "*"
-files = [
-    {file = "pyext-0.7.tar.gz", hash = "sha256:e618a635be4e8c4a84b443cc27186601ad052efe35f01839815f2a2cf3947cdf"},
-]
-
-[package.source]
-type = "legacy"
-url = "https://pypi.org/simple"
-reference = "pypi_"
-
-[[package]]
 name = "pynvml"
 version = "11.5.0"
 description = "Python Bindings for the NVIDIA Management Library"
@@ -4632,4 +4617,4 @@ reference = "pypi_"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11 <4"
-content-hash = "01d0f0ab2e0ffc62a8a38bc22588a55a770b9669dc2dcdf8e9acd3987a0cc87a"
+content-hash = "0458a556f3b3da23892b92241739dfc8714154c5267fe76c2dccce38a151aac0"

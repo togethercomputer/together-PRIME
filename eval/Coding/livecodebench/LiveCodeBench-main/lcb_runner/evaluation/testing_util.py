@@ -18,7 +18,21 @@ from io import StringIO
 # used for testing the code that reads from input
 from unittest.mock import patch, mock_open
 
-from pyext import RuntimeModule
+from types import ModuleType
+
+
+class RuntimeModule:
+    """Minimal stand-in for pyext.RuntimeModule.
+
+    pyext 0.7 cannot be installed on Python >= 3.11 (its setup.py calls
+    inspect.getargspec), so build the module directly instead.
+    """
+
+    @staticmethod
+    def from_string(name, docstring, s):
+        module = ModuleType(name, docstring)
+        exec(s, module.__dict__)
+        return module
 
 from enum import Enum
 

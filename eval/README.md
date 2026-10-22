@@ -31,7 +31,7 @@ For LiveCodeBench, we use the following virtual environment.
 ```bash
 # git clone https://github.com/PRIME-RL/PRIME.git
 # cd eval
-conda create -n lcb python==3.10
+conda create -n lcb python==3.11
 conda activate lcb
 pip install -r requirements_lcb.txt
 ```
